@@ -1,0 +1,28 @@
+# Maven / Java
+/target/
+*.iml
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+
+# Logs
+/logs/
+*.log
+
+# OS
+.DS_Store
+
+# Node
+node_modules/
+
+# Keystores and secrets
+*.keystore
+*.jks
+*.p12
+.env
+.env.*
+
+# Local application properties (may contain secrets)
+src/main/resources/application.properties

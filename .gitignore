@@ -1,0 +1,40 @@
+# Repository-level .gitignore for Travel Agency Application
+
+# Ignore IntelliJ / IDE files
+*.iml
+.idea/
+
+# VS Code settings
+.vscode/
+
+# GitHub workflows and local configs (do not commit secrets in them)
+.github/
+
+# Maven / Java
+/target/
+.settings/
+.classpath
+.project
+
+# Build artifacts
+target/
+
+# Logs
+/logs/
+*.log
+
+# OS
+.DS_Store
+
+# Node
+node_modules/
+
+# Keystores and secrets
+*.keystore
+*.jks
+*.p12
+.env
+.env.*
+
+# Local application properties (use example files in repo)
+src/main/resources/application.properties

@@ -1,0 +1,13 @@
+# Example application properties for local development
+# Copy to src/main/resources/application.properties and update secrets locally
+
+server.port=8080
+spring.datasource.url=jdbc:h2:mem:travel;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=create-drop
+
+# JWT (DO NOT commit real secrets)
+app.jwtSecret=ChangeThisToASecureRandomLongStringAtLocal
+app.jwtExpirationMs=86400000
