@@ -1,10 +1,18 @@
-import { getTours } from '@/lib/mock-api';
+import { getTours } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import TourList from '@/components/tour-list';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
-  const featuredTours = (await getTours()).slice(0, 3);
+  let featuredTours = [];
+
+  try {
+    featuredTours = (await getTours()).slice(0, 3);
+  } catch {
+    // Backend may be unavailable — render the page with no tours
+  }
 
   return (
     <div className="stack-large">
@@ -45,7 +53,11 @@ export default async function HomePage() {
         <Link href="/tours" className="link-arrow">View all tours →</Link>
       </section>
 
-      <TourList tours={featuredTours} />
+      {featuredTours.length > 0 ? (
+        <TourList tours={featuredTours} />
+      ) : (
+        <p className="muted center-text">Start the backend to see featured tours from the API.</p>
+      )}
     </div>
   );
 }

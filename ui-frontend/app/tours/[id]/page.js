@@ -1,16 +1,19 @@
-import { getTourById, getTours } from '@/lib/mock-api';
+import { getTourById } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import TourDetails from '@/components/tour-details';
 import BookingForm from '@/components/booking-form';
 import FeedbackForm from '@/components/feedback-form';
 
-export async function generateStaticParams() {
-  const tours = await getTours();
-  return tours.map((tour) => ({ id: tour.id }));
-}
+export const dynamic = 'force-dynamic';
 
 export default async function TourDetailsPage({ params }) {
-  const tour = await getTourById(params.id);
+  let tour = null;
+
+  try {
+    tour = await getTourById(params.id);
+  } catch {
+    // Backend unavailable or tour not found
+  }
 
   if (!tour) {
     notFound();

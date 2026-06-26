@@ -37,6 +37,8 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = new Booking();
         booking.setUser(user);
         booking.setTour(tour);
+        booking.setTravelDate(request.getTravelDate());
+        booking.setGuests(request.getGuests());
         Booking saved = bookingRepository.save(booking);
         return toResponse(saved);
     }
@@ -79,6 +81,8 @@ public class BookingServiceImpl implements BookingService {
         r.setUserId(b.getUser().getId());
         r.setStatus(b.getStatus().name());
         r.setCreatedAt(b.getCreatedAt());
+        r.setTravelDate(b.getTravelDate());
+        r.setGuests(b.getGuests());
         return r;
     }
 }

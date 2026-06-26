@@ -22,19 +22,19 @@ public class FeedbackController {
     }
 
     @PostMapping("/api/bookings/{bookingId}/feedback")
-    public ResponseEntity<FeedbackResponse> submit(@PathVariable Long bookingId, @Valid @RequestBody FeedbackRequest request) {
+    public ResponseEntity<FeedbackResponse> submit(@PathVariable("bookingId") Long bookingId, @Valid @RequestBody FeedbackRequest request) {
         String email = getCurrentUserEmail();
         return ResponseEntity.ok(feedbackService.submitFeedback(bookingId, request, email));
     }
 
     @PutMapping("/api/bookings/{bookingId}/feedback")
-    public ResponseEntity<FeedbackResponse> update(@PathVariable Long bookingId, @Valid @RequestBody FeedbackRequest request) {
+    public ResponseEntity<FeedbackResponse> update(@PathVariable("bookingId") Long bookingId, @Valid @RequestBody FeedbackRequest request) {
         String email = getCurrentUserEmail();
         return ResponseEntity.ok(feedbackService.updateFeedback(bookingId, request, email));
     }
 
     @GetMapping("/api/tours/{tourId}/feedback")
-    public ResponseEntity<List<FeedbackResponse>> forTour(@PathVariable Long tourId) {
+    public ResponseEntity<List<FeedbackResponse>> forTour(@PathVariable("tourId") Long tourId) {
         return ResponseEntity.ok(feedbackService.getFeedbackByTour(tourId));
     }
 

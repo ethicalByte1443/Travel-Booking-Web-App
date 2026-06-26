@@ -37,13 +37,13 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookingResponse> getById(@PathVariable Long id) {
+    public ResponseEntity<BookingResponse> getById(@PathVariable("id") Long id) {
         String email = getCurrentUserEmail();
         return ResponseEntity.ok(bookingService.getBookingById(id, email));
     }
 
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<Void> cancel(@PathVariable Long id) {
+    public ResponseEntity<Void> cancel(@PathVariable("id") Long id) {
         String email = getCurrentUserEmail();
         bookingService.cancelBooking(id, email);
         return ResponseEntity.noContent().build();

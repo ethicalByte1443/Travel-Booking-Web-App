@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Input from './input';
 import Button from './button';
-import { createBooking, getMyBookings } from '@/lib/mock-api';
+import { createBooking, getMyBookings } from '@/lib/api';
 import { getCurrentUser, getToken } from '@/lib/auth';
 
 export default function BookingForm({ tour }) {
   const [values, setValues] = useState({ travelDate: '', guests: 2 });
   const [status, setStatus] = useState('');
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const nextErrors = {};
@@ -40,17 +41,24 @@ export default function BookingForm({ tour }) {
       return;
     }
 
-    const user = getCurrentUser();
-    await createBooking(token, {
-      userId: user?.id,
-      tourId: tour.id,
-      travelDate: values.travelDate,
-      guests: Number(values.guests)
-    });
+    setLoading(true);
+    setStatus('');
 
-    const bookings = await getMyBookings(token);
-    const latest = bookings.find((booking) => booking.tourId === String(tour.id));
-    setStatus(latest ? `Booking submitted successfully. Reference ${latest.id}.` : 'Booking submitted successfully.');
+    try {
+      await createBooking(token, {
+        tourId: tour.id,
+        travelDate: values.travelDate,
+        guests: Number(values.guests)
+      });
+
+      const bookings = await getMyBookings(token);
+      const latest = bookings.find((booking) => booking.tourId === String(tour.id));
+      setStatus(latest ? `Booking submitted successfully. Reference ${latest.id}.` : 'Booking submitted successfully.');
+    } catch (error) {
+      setStatus(error.message || 'Booking failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,7 +81,7 @@ export default function BookingForm({ tour }) {
         error={errors.guests}
         onChange={(event) => setValues({ ...values, guests: event.target.value })}
       />
-      <Button type="submit">Submit booking</Button>
+      <Button type="submit" disabled={loading}>{loading ? 'Booking…' : 'Submit booking'}</Button>
       {status ? <p role="status" className="pill">{status}</p> : null}
     </form>
   );

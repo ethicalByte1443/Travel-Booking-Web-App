@@ -11,6 +11,7 @@ export default function RegisterForm() {
   const [values, setValues] = useState({ name: '', email: '', password: '', role: 'CUSTOMER' });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const nextErrors = {};
@@ -30,7 +31,7 @@ export default function RegisterForm() {
     return nextErrors;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const nextErrors = validate();
     setErrors(nextErrors);
@@ -38,6 +39,9 @@ export default function RegisterForm() {
     if (Object.keys(nextErrors).length > 0) {
       return;
     }
+
+    setLoading(true);
+    setMessage('');
 
     try {
       await register({
@@ -50,6 +54,8 @@ export default function RegisterForm() {
       router.push('/dashboard');
     } catch (error) {
       setMessage(error.message || 'Unable to create account.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,7 +97,7 @@ export default function RegisterForm() {
           <option value="TRAVEL_AGENT">Travel Agent</option>
         </select>
       </div>
-      <Button type="submit">Create account</Button>
+      <Button type="submit" disabled={loading}>{loading ? 'Creating…' : 'Create account'}</Button>
       {message ? <p className="pill" role="status">{message}</p> : null}
     </form>
   );
