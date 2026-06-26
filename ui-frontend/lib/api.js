@@ -16,6 +16,10 @@ const LOCATION_IMAGES = {
 const DURATION_SEQUENCE = ['3 days', '4 days', '5 days', '6 days', '7 days', '8 days', '9 days'];
 const RATING_SEQUENCE = [4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 5.0];
 
+/**
+ * Generic fetch wrapper that injects the JWT token, handles errors,
+ * and parses JSON responses from the Spring Boot backend.
+ */
 async function request(path, { method = 'GET', body, token } = {}) {
   const headers = {
     'Content-Type': 'application/json'
@@ -57,6 +61,12 @@ async function request(path, { method = 'GET', body, token } = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+/* ---------- Transformers ---------- */
+
+/**
+ * Enrich a raw Tour entity from the backend with computed display fields
+ * (image, duration, rating) so every TourCard / TourDetails looks great.
+ */
 function toTour(tour) {
   const id = String(tour.id);
   const numericId = Number.parseInt(id, 10) || 1;
@@ -76,6 +86,9 @@ function toTour(tour) {
   };
 }
 
+/**
+ * Enrich a BookingResponse with tour name / location for display.
+ */
 function toBooking(booking, tourMap = new Map()) {
   const tour = tourMap.get(String(booking.tourId));
   return {
@@ -85,10 +98,14 @@ function toBooking(booking, tourMap = new Map()) {
     tourLocation: tour?.location || '',
     status: booking.status,
     createdAt: booking.createdAt,
+    travelDate: booking.travelDate || null,
+    guests: booking.guests || 1,
     feedbackRating: booking.feedbackRating || null,
     feedbackComment: booking.feedbackComment || null
   };
 }
+
+/* ---------- Auth ---------- */
 
 export async function loginRequest(email, password) {
   return request('/api/auth/login', {
@@ -104,6 +121,8 @@ export async function registerRequest(payload) {
   });
 }
 
+/* ---------- Users ---------- */
+
 export async function fetchCurrentUser(token) {
   return request('/api/users/me', { token });
 }
@@ -115,6 +134,8 @@ export async function updateCurrentUser(token, payload) {
     body: payload
   });
 }
+
+/* ---------- Tours ---------- */
 
 export async function getTours() {
   const tours = await request('/api/tours');
@@ -140,6 +161,34 @@ export async function searchTours(params = {}) {
   return (tours || []).map(toTour);
 }
 
+/** Admin / Travel Agent: create a new tour */
+export async function createTour(token, payload) {
+  return request('/api/tours', {
+    method: 'POST',
+    token,
+    body: payload
+  });
+}
+
+/** Admin / Travel Agent: update an existing tour */
+export async function updateTour(token, tourId, payload) {
+  return request(`/api/tours/${tourId}`, {
+    method: 'PUT',
+    token,
+    body: payload
+  });
+}
+
+/** Admin / Travel Agent: delete a tour */
+export async function deleteTour(token, tourId) {
+  return request(`/api/tours/${tourId}`, {
+    method: 'DELETE',
+    token
+  });
+}
+
+/* ---------- Bookings ---------- */
+
 export async function getMyBookings(token) {
   const [bookings, tours] = await Promise.all([
     request('/api/bookings/my', { token }),
@@ -162,7 +211,11 @@ export async function createBooking(token, payload) {
   return request('/api/bookings', {
     method: 'POST',
     token,
-    body: { tourId: Number(payload.tourId) }
+    body: {
+      tourId: Number(payload.tourId),
+      travelDate: payload.travelDate,
+      guests: Number(payload.guests) || 1
+    }
   });
 }
 
@@ -172,6 +225,8 @@ export async function cancelBooking(token, bookingId) {
     token
   });
 }
+
+/* ---------- Feedback ---------- */
 
 export async function submitFeedback(token, bookingId, payload) {
   return request(`/api/bookings/${bookingId}/feedback`, {

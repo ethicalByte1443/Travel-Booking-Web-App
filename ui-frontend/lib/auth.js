@@ -11,25 +11,32 @@ import {
 } from './session';
 import { fetchCurrentUser, loginRequest, registerRequest } from './api';
 
-function encodeToken(payload) {
-  return btoa(JSON.stringify(payload));
-}
-
-function decodeToken(token) {
-  try {
-    return JSON.parse(atob(token));
-  } catch {
-    return null;
+/**
+ * Strip the Spring Security "ROLE_" prefix so the frontend can compare
+ * plain role names such as "CUSTOMER", "ADMIN", "TRAVEL_AGENT".
+ */
+function stripRolePrefix(role) {
+  if (typeof role === 'string' && role.startsWith('ROLE_')) {
+    return role.substring(5);
   }
+  return role || 'CUSTOMER';
 }
 
+/**
+ * Normalise the user object coming from the backend so that every
+ * consumer sees a consistent { role, roles } shape with unprefixed values.
+ */
 function normalizeRole(user) {
   if (!user) {
     return null;
   }
 
-  const roles = Array.isArray(user.roles) ? user.roles : [];
-  const role = user.role || roles[0] || 'CUSTOMER';
+  // Backend returns roles as Set<String> (e.g. ["ROLE_CUSTOMER"])
+  const rawRoles = Array.isArray(user.roles) ? user.roles : [];
+  const roles = rawRoles.map(stripRolePrefix);
+
+  // Prefer the first role in the set; fall back to a plain "role" field
+  const role = roles[0] || stripRolePrefix(user.role) || 'CUSTOMER';
 
   return {
     ...user,
@@ -39,12 +46,12 @@ function normalizeRole(user) {
 }
 
 export function createTokenFromUser(user) {
-  return encodeToken({
+  return btoa(JSON.stringify({
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role
-  });
+  }));
 }
 
 export function getCurrentUser() {
@@ -58,7 +65,12 @@ export function getCurrentUser() {
     return null;
   }
 
-  return normalizeRole(decodeToken(token));
+  // Attempt to decode a simple base64-encoded payload (dev fallback)
+  try {
+    return normalizeRole(JSON.parse(atob(token)));
+  } catch {
+    return null;
+  }
 }
 
 export function clearToken() {
@@ -91,6 +103,10 @@ export async function authenticate(email, password) {
   return login(email, password);
 }
 
+/**
+ * React hook that keeps the authenticated user in sync across tabs
+ * and after login / logout actions.
+ */
 export function useAuthUser() {
   const [user, setUser] = useState(() => getCurrentUser());
   const [loading, setLoading] = useState(() => {

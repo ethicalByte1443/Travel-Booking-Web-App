@@ -8,9 +8,10 @@ import { authenticate } from '@/lib/auth';
 
 export default function LoginForm() {
   const router = useRouter();
-  const [values, setValues] = useState({ email: '', password: '', role: 'CUSTOMER' });
+  const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const nextErrors = {};
@@ -26,7 +27,7 @@ export default function LoginForm() {
     return nextErrors;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const nextErrors = validate();
     setErrors(nextErrors);
@@ -35,12 +36,17 @@ export default function LoginForm() {
       return;
     }
 
+    setLoading(true);
+    setMessage('');
+
     try {
       const { user } = await authenticate(values.email, values.password);
       setMessage(`Welcome back, ${user.name}.`);
       router.push('/dashboard');
     } catch (error) {
       setMessage(error.message || 'Unable to sign in.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,21 +70,7 @@ export default function LoginForm() {
         onChange={(event) => setValues({ ...values, password: event.target.value })}
       />
 
-      <div className="field">
-        <label htmlFor="login-role">Role</label>
-        <select
-          id="login-role"
-          className="select"
-          value={values.role}
-          onChange={(event) => setValues({ ...values, role: event.target.value })}
-        >
-          <option value="CUSTOMER">Customer</option>
-          <option value="ADMIN">Admin</option>
-          <option value="TRAVEL_AGENT">Travel Agent</option>
-        </select>
-      </div>
-
-      <Button type="submit">Login</Button>
+      <Button type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Login'}</Button>
       {message ? <p className="pill" role="status">{message}</p> : null}
     </form>
   );

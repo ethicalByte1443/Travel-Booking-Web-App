@@ -1,22 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { getCurrentUser } from '@/lib/auth';
-import { useEffect, useState } from 'react';
+import { useAuthUser } from '@/lib/auth';
 
-const links = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/bookings', label: 'Bookings' },
-  { href: '/feedback', label: 'Feedback' },
-  { href: '/admin', label: 'Admin' }
-];
+const ADMIN_ROLES = ['ADMIN', 'TRAVEL_AGENT'];
 
 export default function DashboardLayout({ title, subtitle, children }) {
-  const [user, setUser] = useState(null);
+  const { user } = useAuthUser();
+  const isAdmin = user && ADMIN_ROLES.includes(user.role);
 
-  useEffect(() => {
-    setUser(getCurrentUser());
-  }, []);
+  const links = [
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/bookings', label: 'Bookings' },
+    { href: '/feedback', label: 'Feedback' }
+  ];
+
+  if (isAdmin) {
+    links.push({ href: '/admin', label: 'Admin' });
+  }
 
   return (
     <section className="dashboard-layout">

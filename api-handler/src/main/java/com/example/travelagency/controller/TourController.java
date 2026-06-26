@@ -22,7 +22,7 @@ public class TourController {
     public ResponseEntity<List<Tour>> getAll() { return ResponseEntity.ok(tourService.getAll()); }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Tour> getById(@PathVariable Long id) { return ResponseEntity.ok(tourService.getById(id)); }
+    public ResponseEntity<Tour> getById(@PathVariable("id") Long id) { return ResponseEntity.ok(tourService.getById(id)); }
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_TRAVEL_AGENT')")
@@ -30,20 +30,20 @@ public class TourController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_TRAVEL_AGENT')")
-    public ResponseEntity<Tour> update(@PathVariable Long id, @Valid @RequestBody Tour tour) { return ResponseEntity.ok(tourService.update(id, tour)); }
+    public ResponseEntity<Tour> update(@PathVariable("id") Long id, @Valid @RequestBody Tour tour) { return ResponseEntity.ok(tourService.update(id, tour)); }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_TRAVEL_AGENT')")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable("id") Long id) {
         tourService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Tour>> search(@RequestParam(required = false) String location,
-                                             @RequestParam(required = false) String category,
-                                             @RequestParam(required = false) BigDecimal min,
-                                             @RequestParam(required = false) BigDecimal max) {
+    public ResponseEntity<List<Tour>> search(@RequestParam(value = "location", required = false) String location,
+                                             @RequestParam(value = "category", required = false) String category,
+                                             @RequestParam(value = "min", required = false) BigDecimal min,
+                                             @RequestParam(value = "max", required = false) BigDecimal max) {
         return ResponseEntity.ok(tourService.search(location, category, min, max));
     }
 }

@@ -5,18 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from './theme-provider';
 import { clearToken, useAuthUser } from '@/lib/auth';
 
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/tours', label: 'Tours' },
-  { href: '/about', label: 'About' },
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/admin', label: 'Admin' }
-];
+const ADMIN_ROLES = ['ADMIN', 'TRAVEL_AGENT'];
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const { user } = useAuthUser();
+
+  const isAdmin = user && ADMIN_ROLES.includes(user.role);
 
   const handleLogout = () => {
     clearToken();
@@ -31,20 +27,21 @@ export default function Navbar() {
       </Link>
 
       <nav className="nav-links" aria-label="Primary">
-        {navLinks.map((link) => (
-          <Link key={link.href} href={link.href} className="nav-link">
-            {link.label}
-          </Link>
-        ))}
+        <Link href="/" className="nav-link">Home</Link>
+        <Link href="/tours" className="nav-link">Tours</Link>
+        <Link href="/about" className="nav-link">About</Link>
+        {user && <Link href="/dashboard" className="nav-link">Dashboard</Link>}
+        {isAdmin && <Link href="/admin" className="nav-link">Admin</Link>}
       </nav>
 
       <div className="nav-actions">
         <button type="button" className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'light' ? 'Dark mode' : 'Light mode'}
+          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
         </button>
         {user ? (
           <>
-            <span className="pill" aria-label="Current role">{user.role}</span>
+            <span className="pill" aria-label="Current user">{user.name}</span>
+            <span className="badge badge-accent" aria-label="Current role">{user.role}</span>
             <button type="button" className="button ghost" onClick={handleLogout}>
               Logout
             </button>

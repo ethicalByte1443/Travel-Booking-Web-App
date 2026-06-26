@@ -1,3 +1,10 @@
+/**
+ * Legacy re-export layer.
+ *
+ * All functions now delegate directly to the real API client.
+ * This file exists so that any remaining imports from '@/lib/mock-api'
+ * continue to work without code changes.
+ */
 export {
   cancelBooking,
   createBooking,
@@ -9,5 +16,8 @@ export {
   getTours,
   searchTours,
   submitFeedback,
-  updateFeedback
+  updateFeedback,
+  createTour,
+  updateTour,
+  deleteTour
 } from './api';
