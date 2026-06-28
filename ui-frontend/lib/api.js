@@ -100,6 +100,11 @@ function toBooking(booking, tourMap = new Map()) {
     createdAt: booking.createdAt,
     travelDate: booking.travelDate || null,
     guests: booking.guests || 1,
+    assignedAgentName: booking.assignedAgentName || null,
+    assignedAgentId: booking.assignedAgentId || null,
+    customerName: booking.customerName || null,
+    customerEmail: booking.customerEmail || null,
+    cancellationReason: booking.cancellationReason || null,
     feedbackRating: booking.feedbackRating || null,
     feedbackComment: booking.feedbackComment || null
   };
@@ -207,6 +212,15 @@ export async function getAllBookings(token) {
   return (bookings || []).map((booking) => toBooking(booking, tourMap));
 }
 
+export async function getAgentBookings(token) {
+  const [bookings, tours] = await Promise.all([
+    request('/api/bookings/agent', { token }),
+    getTours()
+  ]);
+  const tourMap = new Map(tours.map((tour) => [tour.id, tour]));
+  return (bookings || []).map((booking) => toBooking(booking, tourMap));
+}
+
 export async function createBooking(token, payload) {
   return request('/api/bookings', {
     method: 'POST',
@@ -223,6 +237,14 @@ export async function cancelBooking(token, bookingId) {
   return request(`/api/bookings/${bookingId}/cancel`, {
     method: 'PUT',
     token
+  });
+}
+
+export async function updateBookingStatus(token, bookingId, status, reason = null) {
+  return request(`/api/bookings/${bookingId}/status`, {
+    method: 'PATCH',
+    token,
+    body: { status, reason }
   });
 }
 

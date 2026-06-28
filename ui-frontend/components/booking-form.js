@@ -11,6 +11,7 @@ export default function BookingForm({ tour }) {
   const [status, setStatus] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [successData, setSuccessData] = useState(null);
 
   const validate = () => {
     const nextErrors = {};
@@ -53,7 +54,11 @@ export default function BookingForm({ tour }) {
 
       const bookings = await getMyBookings(token);
       const latest = bookings.find((booking) => booking.tourId === String(tour.id));
-      setStatus(latest ? `Booking submitted successfully. Reference ${latest.id}.` : 'Booking submitted successfully.');
+      if (latest) {
+        setSuccessData(latest);
+      } else {
+        setStatus('Booking submitted successfully.');
+      }
     } catch (error) {
       setStatus(error.message || 'Booking failed. Please try again.');
     } finally {
@@ -83,6 +88,25 @@ export default function BookingForm({ tour }) {
       />
       <Button type="submit" disabled={loading}>{loading ? 'Booking…' : 'Submit booking'}</Button>
       {status ? <p role="status" className="pill">{status}</p> : null}
+
+      {successData && (
+        <div className="modal-backdrop">
+          <div className="modal center-text stack-small">
+            <h2>🎉 Booking Successful!</h2>
+            <p>Your trip to <strong>{tour.title}</strong> is confirmed.</p>
+            <div className="feature-list" style={{ textAlign: 'left', margin: '16px 0' }}>
+              <li><strong>Reference ID:</strong> #{successData.id}</li>
+              <li><strong>Travel Date:</strong> {successData.travelDate}</li>
+              <li><strong>Guests:</strong> {successData.guests}</li>
+              {successData.assignedAgentName && (
+                <li><strong>Your Travel Agent:</strong> {successData.assignedAgentName}</li>
+              )}
+            </div>
+            <p className="muted">Your assigned travel agent will reach out to you shortly.</p>
+            <Button onClick={() => setSuccessData(null)}>Close</Button>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
