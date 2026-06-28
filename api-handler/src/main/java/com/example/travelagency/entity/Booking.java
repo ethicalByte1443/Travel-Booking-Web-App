@@ -11,6 +11,7 @@ public class Booking {
     private Long id;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "customer_id")
     private User user;
 
     @ManyToOne(optional = false)

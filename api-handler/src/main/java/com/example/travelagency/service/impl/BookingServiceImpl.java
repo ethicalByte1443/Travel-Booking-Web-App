@@ -44,12 +44,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingResponse> getMyBookings(String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return bookingRepository.findByUser(user).stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookingResponse getBookingById(Long id, String userEmail) {
         Booking b = bookingRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
         if (!b.getUser().getEmail().equals(userEmail)) {
@@ -70,6 +72,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingResponse> getAllBookings() {
         return bookingRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
