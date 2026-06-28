@@ -26,35 +26,29 @@ public class DataLoader {
     @Bean
     CommandLineRunner loadData(UserRepository userRepository,
                                TourRepository tourRepository,
-                               BookingRepository bookingRepository,
-                               FeedbackRepository feedbackRepository,
                                BCryptPasswordEncoder encoder) {
         return args -> {
-            if (!userRepository.existsByEmail("admin@example.com")) {
+            // 1 Admin
+            if (!userRepository.existsByEmail("admin@travelapp.com")) {
                 User admin = new User();
                 admin.setName("Admin");
-                admin.setEmail("admin@example.com");
-                admin.setPassword(encoder.encode("password"));
+                admin.setEmail("admin@travelapp.com");
+                admin.setPassword(encoder.encode("admin123"));
                 admin.getRoles().add(Role.ROLE_ADMIN);
                 userRepository.save(admin);
             }
 
-            if (!userRepository.existsByEmail("agent@example.com")) {
-                User agent = new User();
-                agent.setName("Agent");
-                agent.setEmail("agent@example.com");
-                agent.setPassword(encoder.encode("password"));
-                agent.getRoles().add(Role.ROLE_TRAVEL_AGENT);
-                userRepository.save(agent);
-            }
-
-            if (!userRepository.existsByEmail("user@example.com")) {
-                User user = new User();
-                user.setName("Customer");
-                user.setEmail("user@example.com");
-                user.setPassword(encoder.encode("password"));
-                user.getRoles().add(Role.ROLE_CUSTOMER);
-                userRepository.save(user);
+            // 5 Travel Agents
+            for (int i = 1; i <= 5; i++) {
+                String agentEmail = "agent" + i + "@travelapp.com";
+                if (!userRepository.existsByEmail(agentEmail)) {
+                    User agent = new User();
+                    agent.setName("Agent " + i);
+                    agent.setEmail(agentEmail);
+                    agent.setPassword(encoder.encode("agent123"));
+                    agent.getRoles().add(Role.ROLE_TRAVEL_AGENT);
+                    userRepository.save(agent);
+                }
             }
 
             if (tourRepository.count() == 0) {
@@ -79,44 +73,6 @@ public class DataLoader {
                             experiences.get(i % experiences.size()),
                             locations.get(i % locations.size())));
                     tourRepository.save(tour);
-                }
-            }
-
-            if (bookingRepository.count() == 0 && tourRepository.count() > 0) {
-                User customer = userRepository.findByEmail("user@example.com").orElseThrow();
-                User admin = userRepository.findByEmail("admin@example.com").orElseThrow();
-                List<Tour> tours = tourRepository.findAll();
-
-                for (int i = 0; i < Math.min(6, tours.size()); i++) {
-                    Booking booking = new Booking();
-                    booking.setUser(customer);
-                    booking.setTour(tours.get(i));
-                    booking.setTravelDate(LocalDate.now().plusDays(7 + i));
-                    booking.setGuests(2 + (i % 3));
-                    booking.setCreatedAt(LocalDateTime.now().minusDays(10 - i));
-                    booking.setStatus(switch (i % 5) {
-                        case 0 -> BookingStatus.CREATED;
-                        case 1 -> BookingStatus.CONFIRMED;
-                        case 2 -> BookingStatus.STARTED;
-                        case 3 -> BookingStatus.COMPLETED;
-                        default -> BookingStatus.CANCELLED;
-                    });
-                    bookingRepository.save(booking);
-                }
-
-                if (feedbackRepository.count() == 0) {
-                    bookingRepository.findAll().stream()
-                            .filter(b -> b.getStatus() == BookingStatus.STARTED || b.getStatus() == BookingStatus.COMPLETED)
-                            .limit(4)
-                            .forEach(booking -> {
-                                Feedback feedback = new Feedback();
-                                feedback.setBooking(booking);
-                                feedback.setRating(booking.getStatus() == BookingStatus.COMPLETED ? 5 : 4);
-                                feedback.setComment(String.format("Great trip for %s managed by %s.",
-                                        booking.getTour().getTitle(),
-                                        admin.getName()));
-                                feedbackRepository.save(feedback);
-                            });
                 }
             }
         };

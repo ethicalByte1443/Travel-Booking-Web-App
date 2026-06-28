@@ -11,4 +11,6 @@ public interface BookingService {
     BookingResponse getBookingById(Long id, String userEmail);
     void cancelBooking(Long id, String userEmail);
     List<BookingResponse> getAllBookings();
+    List<BookingResponse> getAgentBookings(String agentEmail);
+    void updateBookingStatus(Long id, String status, String reason, String agentEmail);
 }

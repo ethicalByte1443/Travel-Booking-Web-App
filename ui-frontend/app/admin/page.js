@@ -3,8 +3,8 @@
 import DashboardLayout from '@/components/dashboard-layout';
 import ProtectedRoute from '@/components/protected-route';
 import { useEffect, useState } from 'react';
-import { getAllBookings, getAllFeedback, getTours, createTour, deleteTour } from '@/lib/api';
-import { getToken } from '@/lib/auth';
+import { getAllBookings, getAgentBookings, getAllFeedback, getTours, createTour, deleteTour, updateBookingStatus } from '@/lib/api';
+import { getToken, useAuthUser } from '@/lib/auth';
 import Input from '@/components/input';
 import Button from '@/components/button';
 
@@ -13,6 +13,7 @@ export default function AdminPage() {
   const [bookings, setBookings] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuthUser();
 
   /* Add Tour form state */
   const [tourForm, setTourForm] = useState({
@@ -39,7 +40,7 @@ export default function AdminPage() {
       try {
         const [tourData, bookingData, feedbackData] = await Promise.all([
           getTours(),
-          getAllBookings(token),
+          user?.role === 'TRAVEL_AGENT' ? getAgentBookings(token) : getAllBookings(token),
           getAllFeedback(token)
         ]);
 
@@ -53,8 +54,10 @@ export default function AdminPage() {
       }
     };
 
-    loadAdminData();
-  }, []);
+    if (user) {
+      loadAdminData();
+    }
+  }, [user]);
 
   /* Create Tour */
   const handleCreateTour = async (event) => {
@@ -97,6 +100,31 @@ export default function AdminPage() {
       setTours((prev) => prev.filter((t) => t.id !== tourId));
     } catch {
       // Silently fail
+    }
+  };
+
+  /* Update Status */
+  const handleUpdateStatus = async (bookingId, newStatus) => {
+    const token = getToken();
+    if (!token) return;
+
+    let reason = null;
+    if (newStatus === 'CANCELLED') {
+      reason = prompt("Enter reason for cancellation:");
+      if (reason === null) return; // User clicked cancel in prompt
+      if (!reason.trim()) {
+        alert("Cancellation reason is required.");
+        return;
+      }
+    }
+
+    try {
+      await updateBookingStatus(token, bookingId, newStatus, reason);
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? { ...b, status: newStatus, cancellationReason: reason } : b))
+      );
+    } catch {
+      // API error
     }
   };
 
@@ -229,10 +257,41 @@ export default function AdminPage() {
                           <p className="muted">
                             {booking.travelDate || 'No date'} · {booking.guests} guest(s)
                           </p>
+                          {booking.customerName && (
+                            <p className="muted" style={{ marginTop: '4px' }}>
+                              Customer: {booking.customerName} ({booking.customerEmail})
+                            </p>
+                          )}
+                          {booking.assignedAgentName && user?.role === 'ADMIN' && (
+                            <p className="muted">Agent: {booking.assignedAgentName}</p>
+                          )}
+                          {booking.status === 'CANCELLED' && booking.cancellationReason && (
+                            <p className="error-text" style={{ marginTop: '4px', fontWeight: 'bold' }}>
+                              Cancellation Reason: {booking.cancellationReason}
+                            </p>
+                          )}
                         </div>
-                        <span className={`badge badge-${booking.status.toLowerCase()}`}>
-                          {booking.status}
-                        </span>
+                        <div className="button-row">
+                          <span className={`badge badge-${booking.status.toLowerCase()}`}>
+                            {booking.status}
+                          </span>
+                          
+                          {/* Agent status controls */}
+                          {user?.role === 'TRAVEL_AGENT' && booking.status !== 'CANCELLED' && booking.status !== 'COMPLETED' && (
+                            <div className="button-row">
+                              {booking.status === 'CREATED' && (
+                                <button type="button" className="button ghost" onClick={() => handleUpdateStatus(booking.id, 'CONFIRMED')}>Confirm</button>
+                              )}
+                              {booking.status === 'CONFIRMED' && (
+                                <button type="button" className="button ghost" onClick={() => handleUpdateStatus(booking.id, 'STARTED')}>Start</button>
+                              )}
+                              {booking.status === 'STARTED' && (
+                                <button type="button" className="button ghost" onClick={() => handleUpdateStatus(booking.id, 'COMPLETED')}>Complete</button>
+                              )}
+                              <button type="button" className="button ghost" onClick={() => handleUpdateStatus(booking.id, 'CANCELLED')}>Cancel</button>
+                            </div>
+                          )}
+                        </div>
                       </article>
                     ))}
                   </div>

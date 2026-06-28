@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -53,6 +54,23 @@ public class BookingController {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_TRAVEL_AGENT')")
     public ResponseEntity<List<BookingResponse>> allBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
+    }
+
+    @GetMapping("/agent")
+    @PreAuthorize("hasAuthority('ROLE_TRAVEL_AGENT')")
+    public ResponseEntity<List<BookingResponse>> getAgentBookings() {
+        String email = getCurrentUserEmail();
+        return ResponseEntity.ok(bookingService.getAgentBookings(email));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ROLE_TRAVEL_AGENT')")
+    public ResponseEntity<Void> updateStatus(@PathVariable("id") Long id, @RequestBody Map<String, String> body) {
+        String email = getCurrentUserEmail();
+        String status = body.get("status");
+        String reason = body.get("reason");
+        bookingService.updateBookingStatus(id, status, reason, email);
+        return ResponseEntity.ok().build();
     }
 
     private String getCurrentUserEmail() {

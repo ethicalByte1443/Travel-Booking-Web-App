@@ -11,6 +11,11 @@ public class BookingResponse {
     private LocalDateTime createdAt;
     private LocalDate travelDate;
     private Integer guests;
+    private String assignedAgentName;
+    private Long assignedAgentId;
+    private String customerName;
+    private String customerEmail;
+    private String cancellationReason;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -28,4 +33,19 @@ public class BookingResponse {
 
     public Integer getGuests() { return guests; }
     public void setGuests(Integer guests) { this.guests = guests; }
+
+    public String getAssignedAgentName() { return assignedAgentName; }
+    public void setAssignedAgentName(String assignedAgentName) { this.assignedAgentName = assignedAgentName; }
+
+    public Long getAssignedAgentId() { return assignedAgentId; }
+    public void setAssignedAgentId(Long assignedAgentId) { this.assignedAgentId = assignedAgentId; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public String getCustomerEmail() { return customerEmail; }
+    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
+
+    public String getCancellationReason() { return cancellationReason; }
+    public void setCancellationReason(String cancellationReason) { this.cancellationReason = cancellationReason; }
 }
